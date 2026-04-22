@@ -27,14 +27,10 @@ Deployment
 - Railway
 
 ⚙️ Getting Started
-1. Clone Project
-   
-   git clone <your-repo-url>
-   
-   cd product-dashboard
-  
-2. Backend Setup
-   
+1. Clone Project<br>
+   git clone <your-repo-url><br>
+   cd product-dashboard<br>
+2. Backend Setup<br>
    cd backend<br>
    npm install<br>
    node app.js<br>
