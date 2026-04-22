@@ -14,9 +14,6 @@ export function useProducts() {
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
-    const [prods, st] = await Promise.all([getProducts(), getStats()]);
-    console.log("products sample:", prods[0]);
-    console.log("stats:", st);
     try {
       setLoading(true);
       setError(null);

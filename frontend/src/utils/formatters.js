@@ -1,7 +1,7 @@
 export const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
 export const star = (n) =>
   "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
-export const avgRating = (products) =>
+export const avgRating = (products) => 
   products.length
     ? (
         products.reduce((s, p) => s + Number(p.rating), 0) / products.length
