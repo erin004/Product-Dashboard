@@ -22,8 +22,8 @@ app.get("/fetch", async (req, res) => {
       if (total === 0) return res.json({ message: "Tidak ada data dari API." });
 
       products.forEach((p) => {
-        const title  = p.title       || "Unknown";
-        const price  = Number(p.price)  || 0;
+        const title = p.title || "Unknown";
+        const price = Number(p.price) || 0;
         const rating = Number(p.rating) || 0;
 
         db.query(
@@ -33,9 +33,11 @@ app.get("/fetch", async (req, res) => {
             if (err) console.error("Insert error:", err.message);
             completed++;
             if (completed === total) {
-              res.json({ message: `${total} produk berhasil disimpan ke MySQL!` });
+              res.json({
+                message: `${total} produk berhasil disimpan ke MySQL!`,
+              });
             }
-          }
+          },
         );
       });
     });
@@ -57,7 +59,8 @@ app.get("/product/:id", (req, res) => {
   const id = req.params.id;
   db.query("SELECT * FROM products WHERE id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0) return res.status(404).json({ error: "Produk tidak ditemukan" });
+    if (results.length === 0)
+      return res.status(404).json({ error: "Produk tidak ditemukan" });
     res.json(results[0]);
   });
 });
@@ -68,7 +71,9 @@ app.put("/product/:id", (req, res) => {
   const id = req.params.id;
 
   if (!title || price === undefined || rating === undefined) {
-    return res.status(400).json({ error: "title, price, dan rating wajib diisi." });
+    return res
+      .status(400)
+      .json({ error: "title, price, dan rating wajib diisi." });
   }
 
   db.query(
@@ -76,9 +81,10 @@ app.put("/product/:id", (req, res) => {
     [title, Number(price), Number(rating), id],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (result.affectedRows === 0) return res.status(404).json({ error: "Produk tidak ditemukan." });
+      if (result.affectedRows === 0)
+        return res.status(404).json({ error: "Produk tidak ditemukan." });
       res.json({ message: "Produk berhasil diupdate!" });
-    }
+    },
   );
 });
 
@@ -91,7 +97,8 @@ app.get("/stats", (req, res) => {
       return res.json({ avgPrice: 0, maxPrice: 0 });
     }
 
-    const avgPrice = results.reduce((sum, p) => sum + p.price, 0) / results.length;
+    const avgPrice =
+      results.reduce((sum, p) => sum + p.price, 0) / results.length;
     const maxPrice = Math.max(...results.map((p) => p.price));
 
     res.json({ avgPrice, maxPrice });
@@ -103,6 +110,8 @@ app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
