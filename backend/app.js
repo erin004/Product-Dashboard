@@ -54,6 +54,18 @@ app.get("/products", (req, res) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.json({
+    message: "API Product Dashboard is running 🚀",
+    endpoints: [
+      "/fetch",
+      "/products",
+      "/product/:id",
+      "/stats",
+    ],
+  });
+});
+
 // ambil produk by id
 app.get("/product/:id", (req, res) => {
   const id = req.params.id;
