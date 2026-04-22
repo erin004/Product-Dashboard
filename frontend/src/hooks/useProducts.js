@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
-import { getProducts, getStats, syncApi, updateProduct } from "../api/productApi";
+import { getProducts, getStats, syncApi, updateProduct } from "../api/api";
 
 export function useProducts() {
   const [products, setProducts] = useState([]);
-  const [stats, setStats]       = useState({ avgPrice: 0, maxPrice: 0 });
-  const [loading, setLoading]   = useState(true);
-  const [syncing, setSyncing]   = useState(false);
-  const [error, setError]       = useState(null);
+  const [stats, setStats] = useState({ avgPrice: 0, maxPrice: 0 });
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -35,12 +35,14 @@ export function useProducts() {
     }
   }, [load]);
 
-
-  // auto load 
-  const update = useCallback(async (id, body) => {
-    await updateProduct(id, body);
-    await load();
-  }, [load]);
+  // auto load
+  const update = useCallback(
+    async (id, body) => {
+      await updateProduct(id, body);
+      await load();
+    },
+    [load],
+  );
 
   return { products, stats, loading, syncing, error, load, sync, update };
 }
