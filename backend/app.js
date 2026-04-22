@@ -14,7 +14,8 @@ app.get("/fetch", async (req, res) => {
     const products = await fetchProducts();
 
     db.query("DELETE FROM products", (err) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err)
+        return res.status(500).json({ error: err.message, code: err.code });
 
       let completed = 0;
       const total = products.length;
@@ -42,14 +43,17 @@ app.get("/fetch", async (req, res) => {
       });
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res
+      .status(500)
+      .json({ error: err.message, code: err.code, stack: err.stack });
   }
 });
 
 // ambil semua produk dari db
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err)
+      return res.status(500).json({ error: err.message, code: err.code });
     res.json(results);
   });
 });
@@ -57,12 +61,7 @@ app.get("/products", (req, res) => {
 app.get("/", (req, res) => {
   res.json({
     message: "API Product Dashboard is running 🚀",
-    endpoints: [
-      "/fetch",
-      "/products",
-      "/product/:id",
-      "/stats",
-    ],
+    endpoints: ["/fetch", "/products", "/product/:id", "/stats"],
   });
 });
 
@@ -70,7 +69,8 @@ app.get("/", (req, res) => {
 app.get("/product/:id", (req, res) => {
   const id = req.params.id;
   db.query("SELECT * FROM products WHERE id = ?", [id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err)
+      return res.status(500).json({ error: err.message, code: err.code });
     if (results.length === 0)
       return res.status(404).json({ error: "Produk tidak ditemukan" });
     res.json(results[0]);
@@ -92,7 +92,8 @@ app.put("/product/:id", (req, res) => {
     "UPDATE products SET title=?, price=?, rating=? WHERE id=?",
     [title, Number(price), Number(rating), id],
     (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err)
+        return res.status(500).json({ error: err.message, code: err.code });
       if (result.affectedRows === 0)
         return res.status(404).json({ error: "Produk tidak ditemukan." });
       res.json({ message: "Produk berhasil diupdate!" });
@@ -103,7 +104,8 @@ app.put("/product/:id", (req, res) => {
 // stats: avg & max price
 app.get("/stats", (req, res) => {
   db.query("SELECT * FROM products", (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err)
+      return res.status(500).json({ error: err.message, code: err.code });
 
     if (results.length === 0) {
       return res.json({ avgPrice: 0, maxPrice: 0 });
