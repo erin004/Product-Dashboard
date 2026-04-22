@@ -103,20 +103,17 @@ app.put("/product/:id", (req, res) => {
 
 // stats: avg & max price
 app.get("/stats", (req, res) => {
-  db.query("SELECT * FROM products", (err, results) => {
-    if (err)
-      return res.status(500).json({ error: err.message, code: err.code });
-
-    if (results.length === 0) {
-      return res.json({ avgPrice: 0, maxPrice: 0 });
-    }
-
-    const avgPrice =
-      results.reduce((sum, p) => sum + p.price, 0) / results.length;
-    const maxPrice = Math.max(...results.map((p) => p.price));
-
-    res.json({ avgPrice, maxPrice });
-  });
+  db.query(
+    "SELECT AVG(price) as avgPrice, MAX(price) as maxPrice FROM products",
+    (err, results) => {
+      if (err)
+        return res.status(500).json({ error: err.message, code: err.code });
+      res.json({
+        avgPrice: Number(results[0].avgPrice) || 0,
+        maxPrice: Number(results[0].maxPrice) || 0,
+      });
+    },
+  );
 });
 
 // 404 handler
