@@ -8,12 +8,28 @@ app.use(express.json());
 const db = require("./db");
 const { fetchProducts } = require("./services/apiService");
 
-// test root
+// =====================
+// ROOT
+// =====================
 app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-// ambil & simpan data dari API eksternal
+// =====================
+// TEST DB CONNECTION
+// =====================
+app.get("/test-db", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT 1 AS ok");
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =====================
+// FETCH + SAVE DATA
+// =====================
 app.get("/fetch", async (req, res) => {
   try {
     const products = await fetchProducts();
@@ -22,108 +38,116 @@ app.get("/fetch", async (req, res) => {
       return res.json({ message: "Tidak ada data dari API." });
     }
 
-    await db.query("DELETE FROM products");
+    // reset data (lebih cepat dari DELETE)
+    await db.query("TRUNCATE TABLE products");
 
-    for (const p of products) {
-      const title = p.title || "Unknown";
-      const price = Number(p.price) || 0;
-      const rating = Number(p.rating) || 0;
-
-      await db.query(
-        "INSERT INTO products (title, price, rating) VALUES (?, ?, ?)",
-        [title, price, rating],
-      );
-    }
-
-    res.json({
-      message: `${products.length} produk berhasil disimpan ke MySQL!`,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ambil semua produk
-app.get("/products", async (req, res) => {
-  try {
-    const [results] = await db.query("SELECT * FROM products");
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ambil produk by id
-app.get("/product/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const [results] = await db.query("SELECT * FROM products WHERE id = ?", [
-      id,
+    // bulk insert (FIX IMPORTANT)
+    const values = products.map((p) => [
+      p.title || "Unknown",
+      Number(p.price) || 0,
+      Number(p.rating) || 0,
     ]);
 
-    if (results.length === 0) {
+    await db.query("INSERT INTO products (title, price, rating) VALUES ?", [
+      values,
+    ]);
+
+    res.json({
+      message: `${products.length} produk berhasil disimpan`,
+    });
+  } catch (err) {
+    console.error("FETCH ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =====================
+// GET ALL PRODUCTS
+// =====================
+app.get("/products", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM products");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =====================
+// GET BY ID
+// =====================
+app.get("/product/:id", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM products WHERE id = ?", [
+      req.params.id,
+    ]);
+
+    if (rows.length === 0) {
       return res.status(404).json({ error: "Produk tidak ditemukan" });
     }
 
-    res.json(results[0]);
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// update produk
+// =====================
+// UPDATE PRODUCT
+// =====================
 app.put("/product/:id", async (req, res) => {
   try {
     const { title, price, rating } = req.body;
-    const id = req.params.id;
 
     if (!title || price === undefined || rating === undefined) {
       return res.status(400).json({
-        error: "title, price, dan rating wajib diisi.",
+        error: "title, price, rating wajib diisi",
       });
     }
 
     const [result] = await db.query(
       "UPDATE products SET title=?, price=?, rating=? WHERE id=?",
-      [title, Number(price), Number(rating), id],
+      [title, Number(price), Number(rating), req.params.id],
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Produk tidak ditemukan." });
+      return res.status(404).json({ error: "Produk tidak ditemukan" });
     }
 
-    res.json({ message: "Produk berhasil diupdate!" });
+    res.json({ message: "Berhasil update produk" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// stats
+// =====================
+// STATS (OPTIMIZED SQL)
+// =====================
 app.get("/stats", async (req, res) => {
   try {
-    const [results] = await db.query("SELECT * FROM products");
+    const [rows] = await db.query(`
+      SELECT 
+        AVG(price) AS avgPrice,
+        MAX(price) AS maxPrice
+      FROM products
+    `);
 
-    if (results.length === 0) {
-      return res.json({ avgPrice: 0, maxPrice: 0 });
-    }
-
-    const avgPrice =
-      results.reduce((sum, p) => sum + Number(p.price), 0) / results.length;
-
-    const maxPrice = Math.max(...results.map((p) => Number(p.price)));
-
-    res.json({ avgPrice, maxPrice });
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// =====================
 // 404
+// =====================
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
+// =====================
+// START SERVER
+// =====================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
