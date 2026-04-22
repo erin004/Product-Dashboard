@@ -30,7 +30,6 @@ export default function Dashboard() {
     await update(id, body);
     setEditing(null);
   };
-console.log("products for avgRating:", products.length, products[0]?.rating);
   return (
     <div className="min-h-screen bg-[#07070f] text-white font-sans">
       {/* noise texture */}
