@@ -11,14 +11,17 @@ Product Dashboard App adalah aplikasi web fullstack yang menampilkan data produk
 - Modular & reusable component structure
 
 💻 Tech Stack
+
 Frontend
 - React.js 
 - Tailwind CSS 
-- Recharts 
+- Recharts
+  
 Backend
 - Node.js & Express.js 
 - MySQL 
 - Axios
+  
 Deployment
 - Vercel
 - Railway
