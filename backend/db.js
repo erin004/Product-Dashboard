@@ -7,7 +7,7 @@ const db = isProduction
       uri: process.env.MYSQL_URL,
       waitForConnections: true,
       connectionLimit: 10,
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: false }, //secure connection
     })
   : mysql.createPool({
       host: process.env.MYSQLHOST || "localhost",

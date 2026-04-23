@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 
-app.use(cors());
+app.use(cors()); // vercel dapat akses ke railway
 app.use(express.json());
 
 const db = require("./db");
@@ -24,7 +24,7 @@ app.get("/fetch", async (req, res) => {
 
       products.forEach((p) => {
         const title = p.title || "Unknown";
-        const price = Number(p.price) || 0;
+        const price = Number(p.price) || 0; //handle data kosong
         const rating = Number(p.rating) || 0;
 
         db.query(
